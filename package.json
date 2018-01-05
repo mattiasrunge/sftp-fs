@@ -10,6 +10,7 @@
     "lint": "git ls-files \"*.js\" | xargs eslint"
   },
   "dependencies": {
+    "fs-extra": "^5.0.0",
     "ssh2": "^0.5.5"
   },
   "devDependencies": {
