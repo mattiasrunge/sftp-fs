@@ -7,10 +7,12 @@
   "license": "MIT",
   "scripts": {
     "test": "mocha --recursive",
-    "lint": "git ls-files \"*.js\" | xargs eslint"
+    "lint": "git ls-files \"*.js\" | xargs eslint",
+    "server": "node ./server/index.js"
   },
   "dependencies": {
     "fs-extra": "^5.0.0",
+    "minimist": "^1.2.0",
     "ssh2": "^0.5.5"
   },
   "devDependencies": {

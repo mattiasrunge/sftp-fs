@@ -15,7 +15,7 @@ const Server = require("../lib/Server");
 
 const username = "userName";
 const password = "passWord";
-const keyFile = path.join(__dirname, "keys", "id_rsa");
+const keyFile = path.join(__dirname, "..", "server", "keys", "id_rsa");
 const server = new Server(new FileSystem(username, password));
 const connection = new Client();
 
@@ -71,7 +71,6 @@ describe("sftp-fs", () => {
     });
 
     after(async () => {
-        connection && connection.end();
         await server.stop();
         await fs.remove(rootpath);
     });
@@ -165,7 +164,7 @@ describe("sftp-fs", () => {
             const lattrs = await stat(pathname);
 
             delete lattrs.size;
-            lattrs.mode = lattrs.mode & 0o777;
+            lattrs.mode = lattrs.mode & ~fs.constants.S_IFMT;
 
             assert.deepEqual(sattrs, lattrs);
         });

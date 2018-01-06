@@ -79,11 +79,16 @@ class FileSystem extends FileSystemInterface {
 
     async read(handle, offset, length) {
         const id = handle.getParam("id");
+        const attrs = await fs.fstat(id);
+
+        if (offset >= attrs.size) {
+            return;
+        }
+
         const buffer = Buffer.alloc(length);
+        const { bytesRead } = await fs.read(id, buffer, 0, length, offset);
 
-        await fs.read(id, buffer, offset, length);
-
-        return buffer;
+        return buffer.slice(0, bytesRead);
     }
 
     async listdir(handle) {
@@ -96,11 +101,11 @@ class FileSystem extends FileSystemInterface {
 
         for (const filename of files) {
             const pathname = path.join(handle.pathname, filename);
-            const attrs = this.stat(pathname);
+            const attrs = await this.stat(pathname);
 
             list.push({
                 filename,
-                longname: null, // TODO
+                longname: filename, // `-rwxr--r-- 1 bar bar 718 Dec 8 2009 ${filename}`, // TODO
                 attrs
             });
         }
