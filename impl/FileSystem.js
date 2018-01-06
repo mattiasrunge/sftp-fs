@@ -5,10 +5,12 @@ const fs = require("fs-extra");
 const { SFTP_OPEN_MODE } = require("ssh2");
 const { FileSystemInterface, PermissionDeniedError } = require("../index");
 
+const isset = (value) => typeof value !== "undefined";
+
 const convFlags = (flags) => {
     let mode = 0;
 
-    if (flags & SFTP_OPEN_MODE.READ && flags & SFTP_OPEN_MODE.WRITE) {
+    if ((flags & SFTP_OPEN_MODE.READ) && (flags & SFTP_OPEN_MODE.WRITE)) {
         mode = fs.constants.O_RDWR;
     } else if (flags & SFTP_OPEN_MODE.READ) {
         mode = fs.constants.O_RDONLY;
@@ -29,7 +31,6 @@ const convFlags = (flags) => {
     }
 
     if (flags & SFTP_OPEN_MODE.TRUNC) {
-        mode |= fs.constants.O_TRUNC;
         mode |= fs.constants.O_TRUNC;
     }
 
@@ -103,9 +104,28 @@ class FileSystem extends FileSystemInterface {
             const pathname = path.join(handle.pathname, filename);
             const attrs = await this.stat(pathname);
 
+            const num = 1; // TODO: Number of links and directories inside this directory
+            let mode = "-";
+
+            if (attrs.mode & fs.constants.S_IFDIR) {
+                mode = "d";
+            } else if (attrs.mode & fs.constants.S_IFLNK) {
+                mode = "l";
+            }
+
+            mode += (attrs.mode & fs.constants.S_IRUSR) ? "r" : "-";
+            mode += (attrs.mode & fs.constants.S_IWUSR) ? "w" : "-";
+            mode += (attrs.mode & fs.constants.S_IXUSR) ? "x" : "-";
+            mode += (attrs.mode & fs.constants.S_IRGRP) ? "r" : "-";
+            mode += (attrs.mode & fs.constants.S_IWGRP) ? "w" : "-";
+            mode += (attrs.mode & fs.constants.S_IXGRP) ? "x" : "-";
+            mode += (attrs.mode & fs.constants.S_IROTH) ? "r" : "-";
+            mode += (attrs.mode & fs.constants.S_IWOTH) ? "w" : "-";
+            mode += (attrs.mode & fs.constants.S_IXOTH) ? "x" : "-";
+
             list.push({
                 filename,
-                longname: filename, // `-rwxr--r-- 1 bar bar 718 Dec 8 2009 ${filename}`, // TODO
+                longname: `${mode} ${num} ${attrs.uid} ${attrs.gid} ${attrs.size} ${attrs.mtime.toDateString().slice(4)} ${filename}`,
                 attrs
             });
         }
@@ -117,26 +137,24 @@ class FileSystem extends FileSystemInterface {
 
     async mkdir(pathname, attrs) {
         await fs.mkdir(pathname, attrs.mode);
-
-        if (typeof attrs.uid !== "undefined" || typeof attrs.gid !== "undefined") {
-            await fs.chown(pathname, attrs.uid, attrs.gid);
-        }
-
-        if (typeof attrs.atime !== "undefined" || typeof attrs.mtime !== "undefined") {
-            await fs.utimes(pathname, attrs.atime, attrs.mtime);
-        }
+        await this.setstate(pathname, {
+            uid: attrs.uid,
+            gid: attrs.gid,
+            atime: attrs.atime,
+            mtime: attrs.mtime
+        });
     }
 
     async setstat(pathname, attrs) {
-        if (typeof attrs.mode !== "undefined") {
+        if (isset(attrs.mode)) {
             await fs.chmod(pathname, attrs.mode);
         }
 
-        if (typeof attrs.uid !== "undefined" || typeof attrs.gid !== "undefined") {
+        if (isset(attrs.uid) || isset(attrs.gid)) {
             await fs.chown(pathname, attrs.uid, attrs.gid);
         }
 
-        if (typeof attrs.atime !== "undefined" || typeof attrs.mtime !== "undefined") {
+        if (isset(attrs.atime) || isset(attrs.mtime)) {
             await fs.utimes(pathname, attrs.atime, attrs.mtime);
         }
     }

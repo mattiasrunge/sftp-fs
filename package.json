@@ -1,6 +1,6 @@
 {
   "name": "sftp-fs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Make it simple to implement a SFTP server by implementing a FS interface class",
   "main": "index.js",
   "author": "Mattias Runge-Broberg <mattias@runge.se>",
