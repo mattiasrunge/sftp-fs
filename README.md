@@ -1,6 +1,6 @@
 # Description
 
-sftp-fs is intended to allow for easy implementation of a SFTP server where the server file system can be anything. You can implement a ordinary file system as is done in [FileSystem.js](https://github.com/mattiasrunge/sftp-fs/blob/master/impl/FileSystem.js). But for any other type of filesystem like backend you can just extend the [FileSystemInterface](https://github.com/mattiasrunge/sftp-fs/blob/master/lib/FileSystemInterface.js) class and do something cool.
+sftp-fs is intended to allow for easy implementation of a SFTP server where the server file system can be anything. You can implement an ordinary file system as is done in [FileSystem.js](https://github.com/mattiasrunge/sftp-fs/blob/master/impl/FileSystem.js). But for any other type of filesystem-like backends you can just extend the [FileSystemInterface](https://github.com/mattiasrunge/sftp-fs/blob/master/lib/FileSystemInterface.js) class and do something cool.
 
 # Technical stuff
 
@@ -18,6 +18,7 @@ $ yarn lint
 
 # Run unit tests
 $ yarn test
+...
 ```
 
 # Examples
