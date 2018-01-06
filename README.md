@@ -44,27 +44,16 @@ class MyFS extends FileSystemInterface {
     // TODO: Implement the methods that are needed
 }
 
-const keyFile = "id_rsa";
+const keyFile = "./id_rsa";
 const port = 8022;
 const server = new Server(new MyFS());
 
-process.on("SIGINT", async () => {
-    await server.stop();
-    process.exit(128);
-});
+process.on("SIGINT", () => server.stop());
 
 const run = async () => {
-    server.on("client-connected", () => {
-        console.log("Client connected!");
-    });
-
-    server.on("client-disconnected", () => {
-        console.log("Client disconnected!");
-    });
-
-    server.on("error", (error) => {
-        console.error(error);
-    });
+    server.on("client-connected", () => console.log("Client connected!"));
+    server.on("client-disconnected", () => console.log("Client disconnected!"));
+    server.on("error", (error) => console.error(error));
 
     await server.start(keyFile, port);
 };

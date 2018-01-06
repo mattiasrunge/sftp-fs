@@ -7,6 +7,40 @@ const { FileSystemInterface, PermissionDeniedError } = require("../index");
 
 const isset = (value) => typeof value !== "undefined";
 
+const longname = (name, attrs, num) => {
+    let str = "-";
+
+    if (attrs.isDirectory()) {
+        str = "d";
+    } else if (attrs.isSymbolicLink()) {
+        str = "l";
+    }
+
+    str += (attrs.mode & fs.constants.S_IRUSR) ? "r" : "-";
+    str += (attrs.mode & fs.constants.S_IWUSR) ? "w" : "-";
+    str += (attrs.mode & fs.constants.S_IXUSR) ? "x" : "-";
+    str += (attrs.mode & fs.constants.S_IRGRP) ? "r" : "-";
+    str += (attrs.mode & fs.constants.S_IWGRP) ? "w" : "-";
+    str += (attrs.mode & fs.constants.S_IXGRP) ? "x" : "-";
+    str += (attrs.mode & fs.constants.S_IROTH) ? "r" : "-";
+    str += (attrs.mode & fs.constants.S_IWOTH) ? "w" : "-";
+    str += (attrs.mode & fs.constants.S_IXOTH) ? "x" : "-";
+    str += " ";
+    str += num;
+    str += " ";
+    str += attrs.uid;
+    str += " ";
+    str += attrs.gid;
+    str += " ";
+    str += attrs.size;
+    str += " ";
+    str += attrs.mtime.toDateString().slice(4);
+    str += " ";
+    str += name;
+
+    return str;
+};
+
 const convFlags = (flags) => {
     let mode = 0;
 
@@ -97,35 +131,16 @@ class FileSystem extends FileSystemInterface {
             return;
         }
 
-        const files = await fs.readdir(handle.pathname);
         const list = [];
+        const files = await fs.readdir(handle.pathname);
 
         for (const filename of files) {
-            const pathname = path.join(handle.pathname, filename);
-            const attrs = await this.stat(pathname);
-
+            const attrs = await this.lstat(path.join(handle.pathname, filename));
             const num = 1; // TODO: Number of links and directories inside this directory
-            let mode = "-";
-
-            if (attrs.mode & fs.constants.S_IFDIR) {
-                mode = "d";
-            } else if (attrs.mode & fs.constants.S_IFLNK) {
-                mode = "l";
-            }
-
-            mode += (attrs.mode & fs.constants.S_IRUSR) ? "r" : "-";
-            mode += (attrs.mode & fs.constants.S_IWUSR) ? "w" : "-";
-            mode += (attrs.mode & fs.constants.S_IXUSR) ? "x" : "-";
-            mode += (attrs.mode & fs.constants.S_IRGRP) ? "r" : "-";
-            mode += (attrs.mode & fs.constants.S_IWGRP) ? "w" : "-";
-            mode += (attrs.mode & fs.constants.S_IXGRP) ? "x" : "-";
-            mode += (attrs.mode & fs.constants.S_IROTH) ? "r" : "-";
-            mode += (attrs.mode & fs.constants.S_IWOTH) ? "w" : "-";
-            mode += (attrs.mode & fs.constants.S_IXOTH) ? "x" : "-";
 
             list.push({
                 filename,
-                longname: `${mode} ${num} ${attrs.uid} ${attrs.gid} ${attrs.size} ${attrs.mtime.toDateString().slice(4)} ${filename}`,
+                longname: longname(filename, attrs, num),
                 attrs
             });
         }
@@ -136,7 +151,7 @@ class FileSystem extends FileSystemInterface {
     }
 
     async mkdir(pathname, attrs) {
-        await fs.mkdir(pathname, attrs.mode);
+        await fs.mkdir(pathname, attrs.mode & ~fs.constants.S_IFMT);
         await this.setstat(pathname, {
             uid: attrs.uid,
             gid: attrs.gid,

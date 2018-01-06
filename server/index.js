@@ -17,8 +17,7 @@ const server = new Server(new FileSystem(username, password));
 process.on("SIGINT", async () => {
     console.log("User requested exit, shutting down...");
     await server.stop();
-    console.log("Goodbye!");
-    process.exit(128);
+    console.log("All connections closed, goodbye!");
 });
 
 
