@@ -137,7 +137,7 @@ class FileSystem extends FileSystemInterface {
 
     async mkdir(pathname, attrs) {
         await fs.mkdir(pathname, attrs.mode);
-        await this.setstate(pathname, {
+        await this.setstat(pathname, {
             uid: attrs.uid,
             gid: attrs.gid,
             atime: attrs.atime,
