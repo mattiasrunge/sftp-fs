@@ -38,7 +38,7 @@ $ yarn server
 ```js
 "use strict";
 
-const { FileSystemInterface, Server, errors } = require("sftp-fs");
+const { FileSystemInterface, Server } = require("sftp-fs");
 
 class MyFS extends FileSystemInterface {
     // TODO: Implement the methods that are needed
