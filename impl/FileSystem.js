@@ -3,7 +3,8 @@
 const path = require("path");
 const fs = require("fs-extra");
 const { SFTP_OPEN_MODE } = require("ssh2");
-const { FileSystemInterface, PermissionDeniedError } = require("../index");
+const FileSystemInterface = require("../lib/FileSystemInterface");
+const { PermissionDeniedError } = require("../lib/errors");
 
 const isset = (value) => typeof value !== "undefined";
 
@@ -79,7 +80,7 @@ class FileSystem extends FileSystemInterface {
         this.password = password;
     }
 
-    async authenticate(request) {
+    async authenticate(session, request) {
         if (request.method !== "password" ||
             request.username !== this.username ||
             request.password !== this.password) {
@@ -87,32 +88,32 @@ class FileSystem extends FileSystemInterface {
         }
     }
 
-    async opendir(handle) {
+    async opendir(session, handle) {
         handle.setParam("eof", false);
     }
 
-    async open(handle, flags, attrs) {
+    async open(session, handle, flags, attrs) {
         const id = await fs.open(handle.pathname, convFlags(flags), attrs.mode);
 
         handle.setParam("id", id);
         handle.addDisposable(async () => await fs.close(id));
     }
 
-    async stat(pathname) {
+    async stat(session, pathname) {
         return await fs.stat(pathname);
     }
 
-    async lstat(pathname) {
+    async lstat(session, pathname) {
         return await fs.lstat(pathname);
     }
 
-    async write(handle, offset, data) {
+    async write(session, handle, offset, data) {
         const id = handle.getParam("id");
 
         await fs.write(id, data, offset);
     }
 
-    async read(handle, offset, length) {
+    async read(session, handle, offset, length) {
         const id = handle.getParam("id");
         const attrs = await fs.fstat(id);
 
@@ -126,7 +127,7 @@ class FileSystem extends FileSystemInterface {
         return buffer.slice(0, bytesRead);
     }
 
-    async listdir(handle) {
+    async listdir(session, handle) {
         if (handle.getParam("eof")) {
             return;
         }
@@ -135,7 +136,7 @@ class FileSystem extends FileSystemInterface {
         const files = await fs.readdir(handle.pathname);
 
         for (const filename of files) {
-            const attrs = await this.lstat(path.join(handle.pathname, filename));
+            const attrs = await this.lstat(session, path.join(handle.pathname, filename));
             const num = 1; // TODO: Number of links and directories inside this directory
 
             list.push({
@@ -150,9 +151,9 @@ class FileSystem extends FileSystemInterface {
         return list;
     }
 
-    async mkdir(pathname, attrs) {
+    async mkdir(session, pathname, attrs) {
         await fs.mkdir(pathname, attrs.mode & ~fs.constants.S_IFMT);
-        await this.setstat(pathname, {
+        await this.setstat(session, pathname, {
             uid: attrs.uid,
             gid: attrs.gid,
             atime: attrs.atime,
@@ -160,7 +161,7 @@ class FileSystem extends FileSystemInterface {
         });
     }
 
-    async setstat(pathname, attrs) {
+    async setstat(session, pathname, attrs) {
         if (isset(attrs.mode)) {
             await fs.chmod(pathname, attrs.mode);
         }
@@ -174,27 +175,27 @@ class FileSystem extends FileSystemInterface {
         }
     }
 
-    async rename(oldPathname, newPathname) {
+    async rename(session, oldPathname, newPathname) {
         await fs.rename(oldPathname, newPathname);
     }
 
-    async rmdir(pathname) {
+    async rmdir(session, pathname) {
         await fs.rmdir(pathname);
     }
 
-    async remove(pathname) {
+    async remove(session, pathname) {
         await fs.unlink(pathname);
     }
 
-    async realpath(pathname) {
+    async realpath(session, pathname) {
         return await fs.realpath(pathname);
     }
 
-    async readlink(pathname) {
+    async readlink(session, pathname) {
         return await fs.readlink(pathname);
     }
 
-    async symlink(targetPathname, linkPathname) {
+    async symlink(session, targetPathname, linkPathname) {
         return await fs.symlink(targetPathname, linkPathname);
     }
 }
