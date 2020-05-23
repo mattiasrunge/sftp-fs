@@ -1,6 +1,6 @@
 "use strict";
 
-/* global describe it after before */
+/* global describe it afterAll beforeAll */
 
 const util = require("util");
 const os = require("os");
@@ -63,14 +63,14 @@ const list = async (pathname) => {
 };
 
 describe("sftp-fs", () => {
-    before(async () => {
+    beforeAll(async () => {
         port = await getPort();
         rootpath = await fs.mkdtemp(path.join(os.tmpdir(), "sftp-fs-"));
 
         await server.start(keyFile, port);
     });
 
-    after(async () => {
+    afterAll(async () => {
         await server.stop();
         await fs.remove(rootpath);
     });

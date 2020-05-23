@@ -1,6 +1,6 @@
 {
   "name": "sftp-fs",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Make it simple to implement a SFTP server by implementing a FS interface class",
   "main": "index.js",
   "author": "Mattias Runge-Broberg <mattias@runge.se>",
@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/mattiasrunge/sftp-fs#readme",
   "engines": {
-    "node": ">= 8.6.0"
+    "node": ">= 12.0.0"
   },
   "keywords": [
     "sftp",
@@ -31,19 +31,19 @@
   ],
   "license": "MIT",
   "scripts": {
-    "test": "mocha --recursive",
+    "test": "jest",
     "lint": "git ls-files \"*.js\" | xargs eslint",
     "server": "node ./server/index.js"
   },
   "dependencies": {
-    "fs-extra": "^6.0.1",
-    "minimist": "^1.2.0",
+    "fs-extra": "^9.0.0",
+    "jest": "^26.0.1",
+    "minimist": "^1.2.5",
     "ssh2": "^0.8.5"
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.6",
-    "eslint": "^5.1.0",
-    "get-port": "^3.2.0",
-    "mocha": "^5.2.0"
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.1.0",
+    "get-port": "^5.1.1"
   }
 }
