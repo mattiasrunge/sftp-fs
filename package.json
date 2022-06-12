@@ -36,7 +36,7 @@
     "server": "node ./server/index.js"
   },
   "dependencies": {
-    "fs-extra": "^9.0.0",
+    "fs-extra": "^10.0.0",
     "jest": "^26.0.1",
     "minimist": "^1.2.5",
     "ssh2": "^0.8.5"
